@@ -17,7 +17,7 @@ export const createPost = async (req,res) => {
     const post = req.body;
     try{
      
-        const newPost = new PostMessage(post);
+        const newPost = new PostMessage({...post,creator:req.userId,createdAt:new Date().toUTCString()});
       
         await newPost.save();
         res.status(201).json(newPost)
@@ -41,6 +41,7 @@ export const updatePost = async(req,res) => {
 
 export const deletePost = async (req,res) => {
     const {id:_id} = req.params;
+    if(!req.userId) return  res.json({message:'Unauthenticated'})
     if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post with that id');
 
     await PostMessage.findByIdAndRemove(_id);
@@ -51,11 +52,20 @@ export const deletePost = async (req,res) => {
 
 export const likePost = async (req,res) => {
     const {id:_id} = req.params;
+    // 鉴权未通过
+    if(!req.userId) return  res.json({message:'Unauthenticated'})
     if(!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post with that id');
 
     const post = await PostMessage.findById(_id);
-
-    const updatePost = await PostMessage.findByIdAndUpdate(_id,{likeCount:post.likeCount+1},{new:true});
+    const index = post.likes.findIndex((id)=>id ===String(req.userId))
+    if(index === -1){
+        // 喜欢
+        post.likes.push(req.userId)
+    }else{
+        // 删除
+        post.likes = post.likes.filter((id)=> id !== String(req.userId))
+    }
+    const updatePost = await PostMessage.findByIdAndUpdate(_id,post,{new:true});
 
     res.json(updatePost)
 }

@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import cors from "cors"
 import dotenv from "dotenv";
 import postRoutes from "./routes/posts.js"
-
+import userRoutes from "./routes/user.js"
 
 const app = express();
 dotenv.config()
@@ -17,8 +17,7 @@ app.use("/posts" ,postRoutes)
 app.get('/',(req,res)=>{
     res.send("Hello to Memories!")
 })
-
-
+app.use("/user",userRoutes);
 
 // const CONNECTION_URL = 'mongodb+srv://ZTTjavascript:ZTTjavascript123@cluster0.ml1dj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 const PORT = process.env.PORT || 5000;
